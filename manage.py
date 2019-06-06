@@ -4,6 +4,9 @@
 3、集成redis　可以把容易变化的值放入到配置中
 4、CSRFprotect
 5、集成session
+6、集成Manager
+7、集成
+8、集成migrate
 """
 
 from flask import Flask,session
@@ -11,7 +14,8 @@ from flask_sqlalchemy import SQLAlchemy
 from redis import StrictRedis
 from flask_wtf import CSRFProtect
 from flask_session import Session
-# 创建配置类
+from flask_script import Manager
+
 
 class Config(object):
     SECRET_KEY = '123131'
@@ -46,10 +50,12 @@ CSRFProtect(app)
 # 五、集成session
 Session(app)
 
+manager = Manager(app)
+
 @app.route('/')
 def index():
     session['name'] = '笑话'
     return 'index'
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    manager.run()
