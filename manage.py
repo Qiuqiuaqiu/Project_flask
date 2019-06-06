@@ -8,7 +8,7 @@
 7、集成
 8、集成migrate
 """
-
+import logging
 from flask_script import Manager
 from flask_migrate import Migrate,MigrateCommand
 
@@ -24,6 +24,11 @@ manager.add_command('db',MigrateCommand)
 
 @app.route('/')
 def index():
+    logging.debug('debug')
+    logging.warning('warning')
+    logging.fatal('fatal')
+    logging.error('error')
+    logging.critical('critical')
     return 'index'
 
 if __name__ == '__main__':

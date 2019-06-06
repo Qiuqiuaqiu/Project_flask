@@ -1,3 +1,4 @@
+import logging
 from redis import StrictRedis
 
 
@@ -23,9 +24,11 @@ class Config(object):
     PERMANENT_SESSION_LIFETIME = 86400 * 2
 
 class DevelopConfig(Config):
+    logging_level = logging.DEBUG
     pass
 
 class ProductConfig(Config):
+    logging_level = logging.WARNING
     pass
 
 class TestingConfig(Config):
