@@ -22,7 +22,6 @@ manager = Manager(app)
 Migrate(app,db)
 manager.add_command('db',MigrateCommand)
 
-from info.modules.index import index_blu
 
 if __name__ == '__main__':
     manager.run()

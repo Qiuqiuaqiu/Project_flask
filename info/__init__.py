@@ -5,8 +5,6 @@ from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from flask_session import Session
 import logging
-from info.modules.index import index_blu
-
 from config import configs
 
 db = SQLAlchemy()
@@ -21,6 +19,8 @@ def set_log(config_name):
     # 为全局的日志工具对象（flask app使用的）添加日志记录器
     logging.getLogger().addHandler(file_log_handler)
 
+redis_store = None #type: StrictRedis
+
 def create_app(config_name):
 
     set_log(config_name)
@@ -31,11 +31,13 @@ def create_app(config_name):
     # 二、集成salalchemy
     db.init_app(app)
     # 三、集成redis
+    global redis_store
     redis_store = StrictRedis(host=configs[config_name].REDIS_HOST,port=configs[config_name].REDIS_PORT)
     # 四、集成csrf
     CSRFProtect(app)
     # 五、集成session
     Session(app)
+    from info.modules.index import index_blu
     app.register_blueprint(index_blu)
 
     return app
