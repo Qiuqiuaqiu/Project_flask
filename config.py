@@ -31,7 +31,7 @@ class ProductConfig(Config):
 class TestingConfig(Config):
     pass
 
-config = {
+configs = {
     'develop' : DevelopConfig,
     'product' : ProductConfig,
     'testing' : TestingConfig
