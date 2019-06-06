@@ -22,14 +22,7 @@ manager = Manager(app)
 Migrate(app,db)
 manager.add_command('db',MigrateCommand)
 
-@app.route('/')
-def index():
-    logging.debug('debug')
-    logging.warning('warning')
-    logging.fatal('fatal')
-    logging.error('error')
-    logging.critical('critical')
-    return 'index'
+from info.modules.index import index_blu
 
 if __name__ == '__main__':
     manager.run()

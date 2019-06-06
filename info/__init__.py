@@ -5,6 +5,7 @@ from flask_wtf import CSRFProtect
 from redis import StrictRedis
 from flask_session import Session
 import logging
+from info.modules.index import index_blu
 
 from config import configs
 
@@ -35,5 +36,7 @@ def create_app(config_name):
     CSRFProtect(app)
     # 五、集成session
     Session(app)
+    app.register_blueprint(index_blu)
 
     return app
+
