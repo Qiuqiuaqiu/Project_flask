@@ -21,3 +21,19 @@ class Config(object):
     SESSION_PERMANENT = False
     # 设置session保存时间
     PERMANENT_SESSION_LIFETIME = 86400 * 2
+
+class DevelopConfig(Config):
+    pass
+
+class ProductConfig(Config):
+    pass
+
+class TestingConfig(Config):
+    pass
+
+config = {
+    'develop' : DevelopConfig,
+    'product' : ProductConfig,
+    'testing' : TestingConfig
+
+}
