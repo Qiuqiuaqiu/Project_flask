@@ -15,6 +15,7 @@ from redis import StrictRedis
 from flask_wtf import CSRFProtect
 from flask_session import Session
 from flask_script import Manager
+from flask_migrate import Migrate,MigrateCommand
 
 
 class Config(object):
@@ -49,8 +50,11 @@ redis_store = StrictRedis(host=Config.REDIS_HOST,port=Config.REDIS_PORT)
 CSRFProtect(app)
 # 五、集成session
 Session(app)
-
+# 六、配置Manager
 manager = Manager(app)
+# 七、配置Migrate
+Migrate(app,db)
+manager.add_command('db',MigrateCommand)
 
 @app.route('/')
 def index():
