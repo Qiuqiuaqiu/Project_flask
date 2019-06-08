@@ -155,7 +155,7 @@ function generateImageCode() {
     // １、生成一个随机的uuid
     imageCodeId = generateUUID()
     // ２、拼接url
-    var url = "/image_code?imageCodeId=" + imageCodeId
+    var url = "/passport/image_code?imageCodeId=" + imageCodeId
     // ３、替换img标签中的src属性
     $(".get_pic_code").attr("src",url)
 }
