@@ -1,8 +1,6 @@
 from flask import request, abort, current_app, make_response
-
 from info import redis_store, constants
 from info.modules.passport import passport_blu
-
 from info.utils.captcha.captcha import captcha
 
 @passport_blu.route('/image_code')
