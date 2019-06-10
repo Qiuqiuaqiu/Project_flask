@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import random
 import re
 from flask import request, abort, current_app, make_response, json, jsonify, session
@@ -138,15 +138,17 @@ def register():
 
     return jsonify(errno=RET.OK,errmsg="注册成功")
 
-@passport_blu.route("/login",methods=["POST"])
+@passport_blu.route("/login" ,methods=["POST"])
 def login():
     # 1、取到参数
     # ２、判断参数
     # ３、状态保持
+
+
     dict_data = request.json
 
-    mobile = dict_data.get["mobile"]
-    password = dict_data.get["passport"]
+    mobile = dict_data.get("mobile")
+    password = dict_data.get("passport")
 
     if not all([mobile,password]):
         return jsonify(errno=RET.PARAMERR,errmsg="参数不足")
@@ -158,7 +160,9 @@ def login():
         user = User.query.filter(User.mobile==mobile).first()
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR, errmsg="未找到此用户")
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询错误")
+    if not user:
+        return jsonify(errno=RET.DATAERR, errmsg="未找到此用户")
 
     if not user.check_passowrd(password):
         return jsonify(errno=RET.DATAERR, errmsg="密码错误")
@@ -175,4 +179,4 @@ def login():
         db.rollback()
         current_app.logger.error(e)
 
-    return jsonify(errmo=RET.OK,errmsg="登录成功")
+    return jsonify(errno=RET.OK,errmsg="登录成功")
