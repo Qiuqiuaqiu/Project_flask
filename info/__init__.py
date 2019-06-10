@@ -6,6 +6,7 @@ from redis import StrictRedis
 from flask_session import Session
 import logging
 from config import configs
+from info.utils.common import do_index_class
 
 
 db = SQLAlchemy()
@@ -51,6 +52,9 @@ def create_app(config_name):
 
     from info.modules.passport import passport_blu
     app.register_blueprint(passport_blu)
+
+    # 添加自定义过滤器
+    app.add_template_filter(do_index_class, "indexClass")
 
     return app
 
