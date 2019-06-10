@@ -32,9 +32,9 @@ def create_app(config_name):
     db.init_app(app)
     # 三、集成redis
     global redis_store
-    redis_store = StrictRedis(host=configs[config_name].REDIS_HOST,port=configs[config_name].REDIS_PORT)
+    redis_store = StrictRedis(host=configs[config_name].REDIS_HOST,port=configs[config_name].REDIS_PORT,decode_responses=True)
     # 四、集成csrf
-    CSRFProtect(app)
+    # CSRFProtect(app)
     # 五、集成session
     Session(app)
     from info.modules.index import index_blu

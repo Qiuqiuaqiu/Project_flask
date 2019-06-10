@@ -1,7 +1,9 @@
+import datetime
 import random
 import re
-from flask import request, abort, current_app, make_response, json, jsonify
-from info import redis_store, constants
+from flask import request, abort, current_app, make_response, json, jsonify, session
+from info import redis_store, constants, db
+from info.models import User
 from info.modules.passport import passport_blu
 from info.response_code import RET
 from info.utils.captcha.captcha import captcha
@@ -23,12 +25,15 @@ def get_sms_code():
     # json_data = request.data
     # dict_data = json.loads(json_data)
 
+
     dict_data = request.json
-    modile, image_code, image_code_id = dict_data.get("modile"),dict_data.get("image_code"),dict_data.get("image_code_id")
-    if not all([modile, image_code, image_code_id]):
+    mobile = dict_data.get("mobile")
+    image_code = dict_data.get("image_code")
+    image_code_id = dict_data.get("image_code_id")
+    if not all([mobile, image_code, image_code_id]):
         return jsonify(errno=RET.PARAMERR,errmsg="参数不全")
 
-    if not re.match(r"1[35678]\d{9}",modile):
+    if not re.match(r"1[35678]\d{9}",mobile):
         return jsonify(erron=RET.PARAMERR,errmsg="手机号格式不正确")
 
     try:
@@ -44,11 +49,14 @@ def get_sms_code():
         return jsonify(errno=RET.DATAERR,errmsg="图片验证码输入错误")
 
     sms_code_str = "%06d" % random.randint(0,999999)
-    result = CCP().send_template_sms(modile,[sms_code_str,5],1)
-    if result != 0:
-        return jsonify(errno=RET.THIRDERR,errmsg="第三方错误")
+    print(sms_code_str)
+
+    # result = CCP().send_template_sms(mobile,[sms_code_str,5],1 )
+    #
+    # if result != 0:
+    #     return jsonify(errno=RET.THIRDERR,errmsg="第三方错误")
     try:
-        redis_store.setex("sms_"+modile,constants.SMS_CODE_REDIS_EXPIRES,sms_code_str)
+        redis_store.setex("sms_"+mobile,constants.SMS_CODE_REDIS_EXPIRES,sms_code_str)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg="手机验证码保存失败")
@@ -71,9 +79,70 @@ def get_image_code():
 
     try:
         redis_store.setex("ImageCodeId_"+ image_code_id,constants.IMAGE_CODE_REDIS_EXPIRES,text)
+        print(text)
     except Exception as e:
         current_app.logger.error(e)
         abort(500)
     response = make_response(image)
     response.headers["Content-Type"] = "image/jpg"
     return response
+
+@passport_blu.route("/register",methods=["POST"])
+def register():
+    # 1、接收参数
+    # ２、判断是否完整参数
+    # ３、判断参数
+    # ４、放入数据库
+    # ５、状态保持
+
+    dict_data = request.json
+    mobile = dict_data.get("mobile")
+    smscode = dict_data.get("smscode")
+    password = dict_data.get("password")
+
+    if not all([mobile,smscode,password]):
+        return jsonify(errno=RET.PARAMERR,errmsg="参数不足")
+
+    if not re.match(r"1[35678]\d{9}",mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
+
+    try:
+        real_sms_code = redis_store.get("sms_"+mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询失败")
+
+    if not real_sms_code:
+        return jsonify(errno=RET.NODATA, errmsg="验证码已过期")
+
+    if smscode != real_sms_code:
+        return jsonify(errno=RET.DATAERR, errmsg="手机验证码错误")
+
+    user = User()
+    user.mobile = mobile
+    user.nick_name = mobile
+    user.password_hash = password
+
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        db.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库存储错误")
+
+    session["user_id"] = user.id
+    session["mobile"] = mobile
+    session["nike_name"] = user.nick_name
+
+    return jsonify(errno=RET.OK,errmsg="注册成功")
+
+# @passport_blu.route("/login",methods=["POST"])
+# def login():
+#     # 1、取到参数
+#     # ２、判断参数
+#     # ３、状态保持
+#     dict_data = request.json
+#
+#     mobile = dict_data.get["mobile"]
+#     password = dict_data.get["passport"]
