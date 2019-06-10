@@ -180,3 +180,10 @@ def login():
         current_app.logger.error(e)
 
     return jsonify(errno=RET.OK,errmsg="登录成功")
+
+@passport_blu.route('/logout')
+def logout():
+    session.pop("user_id",None)
+    session.pop("mobile",None)
+    session.pop("nike_name",None)
+    return jsonify(errno=RET.OK,errmsg="退出成功")

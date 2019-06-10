@@ -7,6 +7,7 @@ from flask_session import Session
 import logging
 from config import configs
 
+
 db = SQLAlchemy()
 def set_log(config_name):
     logging.basicConfig(level=configs[config_name].logging_level)  # 调试debug级

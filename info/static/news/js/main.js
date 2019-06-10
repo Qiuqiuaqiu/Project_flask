@@ -304,3 +304,13 @@ function generateUUID() {
     });
     return uuid;
 }
+
+
+function logout() {
+    $.get('/passport/logout', function (resp) {
+        if (resp.errno=="0"){
+            location.reload()
+        }
+
+    })
+}
