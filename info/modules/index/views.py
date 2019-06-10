@@ -7,15 +7,18 @@ from flask import session, render_template, redirect, current_app
 
 @index_blu.route('/')
 def index():
-    user_id = session.get("user_id",None)
+
+    user_id = session.get("user_id")
+    user = None
+
     if user_id:
         try:
-            user = User.query.filter(User.id==user_id)
+            user = User.query.filter(User.id==user_id).first()
         except Exception as e:
             current_app.logger.error(e)
 
     data = {
-        "user", user.to_dict() if user else None
+        "user": user.to_dict() if user else None
     }
 
     return render_template("news/index.html",data=data)
