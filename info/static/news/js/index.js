@@ -1,4 +1,4 @@
-var currentCid = 0; // 当前分类 id
+var currentCid = 1; // 当前分类 id
 var cur_page = 1; // 当前页
 var total_page = 1;  // 总页数
 var data_querying = true;   // 是否正在向后台获取数据
@@ -6,6 +6,7 @@ var data_querying = true;   // 是否正在向后台获取数据
 
 $(function () {
     // 首页分类切换
+    updateNewsData()
     $('.menu li').click(function () {
         var clickCid = $(this).attr('data-cid')
         $('.menu li').each(function () {
@@ -41,10 +42,49 @@ $(function () {
 
         if ((canScrollHeight - nowScroll) < 100) {
             // TODO 判断页数，去更新新闻数据
+            //1、比如说，我现在是最后一页。还要去加载吗？
+            //２、正在加载数据，还要去加载吗
+
         }
     })
 })
 
 function updateNewsData() {
-    // TODO 更新新闻数据
+    // 更新新闻数据
+    var params = {
+        "cid": currentCid,
+        "page": cur_page
+    }
+    $.get("/news_list", params, function (resp) {
+        // 数据加载完毕，设置【正在加载数据】的变量为 false 代表当前没有在加载数据
+        data_querying = false
+        if (resp.errno == "0") {
+            // 给总页数据赋值
+            total_page = resp.data.total_page
+            // 代表请求成功
+            if (cur_page == 1) {
+                $(".list_con").html("")
+            }
+
+            // 添加请求成功之后返回的数据
+
+            // 显示数据
+            for (var i=0;i<resp.data.news_dict_list.length;i++) {
+                var news = resp.data.news_dict_list[i]
+                var content = '<li>'
+                content += '<a href="#" class="news_pic fl"><img src="' + news.index_image_url + '?imageView2/1/w/170/h/170"></a>'
+                content += '<a href="#" class="news_title fl">' + news.title + '</a>'
+                content += '<a href="#" class="news_detail fl">' + news.digest + '</a>'
+                content += '<div class="author_info fl">'
+                content += '<div class="source fl">来源：' + news.source + '</div>'
+                content += '<div class="time fl">' + news.create_time + '</div>'
+                content += '</div>'
+                content += '</li>'
+                $(".list_con").append(content)
+            }
+        }else {
+            // 请求失败
+            alert(resp.errmsg)
+        }
+    })
 }
