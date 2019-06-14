@@ -44,7 +44,16 @@ $(function () {
             // TODO 判断页数，去更新新闻数据
             //1、比如说，我现在是最后一页。还要去加载吗？
             //２、正在加载数据，还要去加载吗
-
+            if(!data_querying){
+                if(cur_page<total_page){
+                    data_querying = true
+                    cur_page += 1
+                    updateNewsData()
+                }
+            }
+            else {
+                data_querying = false
+            }
         }
     })
 })
@@ -60,8 +69,10 @@ function updateNewsData() {
         data_querying = false
         if (resp.errno == "0") {
             // 给总页数据赋值
+            //第一次加载请求数据时，赋值总页数
             total_page = resp.data.total_page
             // 代表请求成功
+            //只有当所有页数为第一页的时候，我们才去清除数据
             if (cur_page == 1) {
                 $(".list_con").html("")
             }
