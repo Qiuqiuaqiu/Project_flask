@@ -34,7 +34,7 @@ def index():
 
     data = {
         "user": user.to_dict() if user else None,
-        "new_dict_li": new_dict_li,
+        "clicks_news_li": new_dict_li,
         "category_li": category_li
     }
 
