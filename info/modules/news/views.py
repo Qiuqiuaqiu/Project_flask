@@ -44,6 +44,9 @@ def detail(news_id):
 
     if not news:
         abort(404)
+
+    news.clicks += 1
+
     user = g.user
     data = {
         "user_info": user.to_dict() if user else None,
