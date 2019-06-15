@@ -2,21 +2,24 @@ from info.models import User, News, Category
 from info.modules.index import index_blu
 
 from info import redis_store
-from flask import session, render_template, redirect, current_app, request, jsonify
+from flask import session, render_template, redirect, current_app, request, jsonify, g
 
 from info.response_code import RET
+from info.utils.common import user_login
 
 
 @index_blu.route('/')
+@user_login
 def index():
     # 右上角逻辑实现
-    user_id = session.get("user_id")
-    user = None
-    if user_id:
-        try:
-            user = User.query.filter(User.id==user_id).first()
-        except Exception as e:
-            current_app.logger.error(e)
+    # user_id = session.get("user_id")
+    # user = None
+    # if user_id:
+    #     try:
+    #         user = User.query.filter(User.id==user_id).first()
+    #     except Exception as e:
+    #         current_app.logger.error(e)
+    user = g.user
     # 点击排行逻辑实现
     new_list = []
     try:
@@ -33,9 +36,9 @@ def index():
         category_li.append(category.to_dict())
 
     data = {
-        "user": user.to_dict() if user else None,
+        "user_info": user.to_dict() if user else None,
         "clicks_news_li": new_dict_li,
-        "category_li": category_li
+        "categorys": category_li
     }
 
     return render_template("news/index.html",data=data)

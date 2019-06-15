@@ -173,6 +173,9 @@ $('.form_group input').on('focusin',function(){
         $.ajax({
             url: "/passport/register",
             type: "post",
+            headers: {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
             contentType: "application/json",
             data: JSON.stringify(params),
             success: function (response) {
@@ -237,6 +240,9 @@ function sendSMSCode() {
         type: "post",
         // 请求参数
         data: JSON.stringify(params),
+        headers: {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
         // 请求参数的数据类型
         contentType: "application/json",
         success: function (response) {
