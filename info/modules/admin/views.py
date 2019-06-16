@@ -3,8 +3,53 @@ import datetime
 from flask import render_template, request, current_app, session, redirect, url_for, g
 
 from info import user_login, constants
-from info.models import User
+from info.models import User, News
 from info.modules.admin import admin_blu
+
+
+@admin_blu.route('/news_review')
+def news_review():
+
+    page = request.args.get("p", 1)
+    keywords = request.args.get("keywords")
+
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = 1
+
+    news_list = []
+    current_page = 1
+    total_page = 1
+
+    # 如果有关键字  添加查询条件：该条新闻中的titile包含该关键字就可以了
+    # 如果没有关键字  还是用原来的条件 News.status != 0
+    # 如果有不同的查询，只有条件不一样。
+    filters = [News.status != 0]
+    if keywords:
+        filters.append(News.title.contains(keywords))
+
+    try:
+        paginate = News.query.filter(*filters) \
+            .order_by(News.create_time.desc()) \
+            .paginate(page, constants.ADMIN_NEWS_PAGE_MAX_COUNT, False)
+
+        news_list = paginate.items
+        current_page = paginate.page
+        total_page = paginate.pages
+    except Exception as e:
+        current_app.logger.error(e)
+
+    news_dict_list = []
+    for news in news_list:
+        news_dict_list.append(news.to_review_dict())
+
+    context = {"total_page": total_page,
+               "current_page": current_page,
+               "news_list": news_dict_list}
+
+    return render_template('admin/news_review.html', data=context)
 
 
 @admin_blu.route("/user_list")
