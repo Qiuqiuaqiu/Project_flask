@@ -27,12 +27,32 @@ def user_count():
     day_date = datetime.datetime.strptime(day_date_str, "%Y-%m-%d")
     day_count = User.query.filter(User.is_admin == False, User.create_time > day_date).count()
 
+    # 四、用户活跃数统计
+    # ["2019-02-08", "2019-02-09", ......]
+    # [100, 200, ......]
+    # 1、先查询出今天的登录用户总数   何为今天？？？ 2019-03-10:0:0:0 <= last_login < 2019-03-11:0:0:0
+    # 2、找2019-03-10的时间对象
+    activate_date = []
+    activate_count = []
+    for i in range(0, 31):
+        start_date = day_date - datetime.timedelta(days=i-0)  # 2019-03-10 2019-03-07 2019-03-06
+        end_date = day_date - datetime.timedelta(days=i-1)  # 2019-03-11 2019-03-08  2019-03-07
+        count = User.query.filter(User.is_admin == False,
+                                  User.last_login >= start_date,
+                                  User.last_login < end_date).count()
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        activate_date.append(start_date_str)
+        activate_count.append(count)
 
+    activate_count.reverse()
+    activate_date.reverse()
 
     data = {
         "total_count": total_count,
         "month_count": month_count,
-        "day_count": day_count
+        "day_count": day_count,
+        "activate_date": activate_date,
+        "activate_count": activate_count
     }
 
     return render_template("admin/user_count.html", data=data)
