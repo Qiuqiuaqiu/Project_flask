@@ -15,7 +15,7 @@ def user_info():
         return redirect("/")
 
     data = {
-        "user_info": user.to_dict()
+        "user": user.to_dict()
 
     }
     return render_template("news/user.html",data=data)
