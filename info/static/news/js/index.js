@@ -5,25 +5,28 @@ var data_querying = true;   // 是否正在向后台获取数据
 
 
 $(function () {
+    // 界面加载完成之后去加载新闻数据
+    updateNewsData();
     // 首页分类切换
-    updateNewsData()
     $('.menu li').click(function () {
-        var clickCid = $(this).attr('data-cid')
+        var clickCid = $(this).attr('data-cid');
+        //删除当前所有li的acttive属性
         $('.menu li').each(function () {
             $(this).removeClass('active')
-        })
-        $(this).addClass('active')
+        });
+        //再去给当前点击的类增加active属性
+        $(this).addClass('active');
 
         if (clickCid != currentCid) {
             // 记录当前分类id
-            currentCid = clickCid
+            currentCid = clickCid;
 
             // 重置分页参数
-            cur_page = 1
-            total_page = 1
-            updateNewsData()
+            cur_page = 1;
+            total_page = 1;
+            updateNewsData();
         }
-    })
+    });
 
     //页面滚动加载相关
     $(window).scroll(function () {
@@ -42,50 +45,48 @@ $(function () {
 
         if ((canScrollHeight - nowScroll) < 100) {
             // TODO 判断页数，去更新新闻数据
-            //1、比如说，我现在是最后一页。还要去加载吗？
-            //２、正在加载数据，还要去加载吗
-            if(!data_querying){
-                if(cur_page<total_page){
-                    data_querying = true
-                    cur_page += 1
-                    updateNewsData()
+            // console.log("到底部了")
+            if (!data_querying) {
+                data_querying = true;
+                //    如果当前页数小于总共页数，那么才去加载数据
+                if (cur_page < total_page) {
+                    cur_page += 1;
+                    //    加载数据
+                    updateNewsData();
                 }
-            }
-            else {
-                data_querying = false
             }
         }
     })
 })
 
 function updateNewsData() {
-    // 更新新闻数据
+    //  更新新闻数据
     var params = {
         "cid": currentCid,
         "page": cur_page
     }
-    $.get("/news_list", params, function (resp) {
-        // 数据加载完毕，设置【正在加载数据】的变量为 false 代表当前没有在加载数据
-        data_querying = false
+
+    $.get('/news_list', params, function (resp) {
+        //数据加载完毕，设置正在加载变量为False，代表当前没有正在加载数据
+        data_querying = false;
         if (resp.errno == "0") {
-            // 给总页数据赋值
-            //第一次加载请求数据时，赋值总页数
-            total_page = resp.data.total_page
-            // 代表请求成功
-            //只有当所有页数为第一页的时候，我们才去清除数据
+            //    给总页数赋值
+            total_page = resp.data.total_page;
+            //    代表请求成功
+            //    清除已有数据
+
             if (cur_page == 1) {
                 $(".list_con").html("")
             }
 
-            // 添加请求成功之后返回的数据
-
-            // 显示数据
-            for (var i=0;i<resp.data.news_dict_list.length;i++) {
-                var news = resp.data.news_dict_list[i]
+            //    添加请求成功之后返回的数据
+            //    显示数据
+            for (var i = 0; i < resp.data.news_dict_li.length; i++) {
+                var news = resp.data.news_dict_li[i]
                 var content = '<li>'
-                content += '<a href="/news/'+ news.id +'" class="news_pic fl"><img src="' + news.index_image_url + '?imageView2/1/w/170/h/170"></a>'
-                content += '<a href="/news/'+ news.id +'" class="news_title fl">' + news.title + '</a>'
-                content += '<a href="/news/'+ news.id +'" class="news_detail fl">' + news.digest + '</a>'
+                content += '<a href="/news/' + news.id + '" class="news_pic fl"><img src="' + news.index_image_url + '?imageView2/1/w/170/h/170"></a>'
+                content += '<a href="/news/' + news.id + '" class="news_title fl">' + news.title + '</a>'
+                content += '<a href="/news/' + news.id + '" class="news_detail fl">' + news.digest + '</a>'
                 content += '<div class="author_info fl">'
                 content += '<div class="source fl">来源：' + news.source + '</div>'
                 content += '<div class="time fl">' + news.create_time + '</div>'
@@ -93,9 +94,7 @@ function updateNewsData() {
                 content += '</li>'
                 $(".list_con").append(content)
             }
-        }else {
-            // 请求失败
-            alert(resp.errmsg)
         }
+
     })
 }

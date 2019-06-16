@@ -1,96 +1,97 @@
+from flask import render_template, current_app, session, request, jsonify, g
+
+from info import redis_store, constants
 from info.models import User, News, Category
-from info.modules.index import index_blu
-
-from info import redis_store
-from flask import session, render_template, redirect, current_app, request, jsonify, g
-
-from info.response_code import RET
 from info.utils.common import user_login
+from info.utils.response_code import RET
+from . import index_blu
 
 
 @index_blu.route('/')
 @user_login
 def index():
-    # 右上角逻辑实现
-    # user_id = session.get("user_id")
-    # user = None
-    # if user_id:
-    #     try:
-    #         user = User.query.filter(User.id==user_id).first()
-    #     except Exception as e:
-    #         current_app.logger.error(e)
+    '''显示首页'''
+    # 如果用户已经登录，将当前登录的用户数据传到模版中，供模版显示
+
     user = g.user
-    # 点击排行逻辑实现
-    new_list = []
+    # 右侧新闻排行的逻辑
+    news_list = []
     try:
-        new_list = News.query.order_by(News.clicks.desc()).limit(6).all()
+        news_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS)
     except Exception as e:
         current_app.logger.error(e)
-    new_dict_li = []
-    for news in new_list:
-        new_dict_li.append(news.to_basic_dict())
-    # 显示新闻分类
+
+    news_dict_li = []
+    for news in news_list:
+        news_dict_li.append(news.to_basic_dict())
+
     categories = Category.query.all()
     category_li = []
     for category in categories:
         category_li.append(category.to_dict())
 
     data = {
-        "user_info": user.to_dict() if user else None,
-        "clicks_news_li": new_dict_li,
-        "categorys": category_li
+        "user": user.to_dict() if user else None,
+        "news_dict_li": news_dict_li,
+        "category_li": category_li
     }
 
-    return render_template("news/index.html",data=data)
+    return render_template('news/index.html', data=data)
+
 
 @index_blu.route('/favicon.ico')
 def favicon():
-    # return redirect("/static/news/favicon.ico")
-    return current_app.send_static_file("news/favicon.ico")
+    # send_static_file是flask查找静态文件所调用的方法
+    return current_app.send_static_file('news/favicon.ico')
+
 
 @index_blu.route('/news_list')
-def get_new_list():
+def news_list():
+    '''获取首页新闻数据'''
 
+    # 获取参数
     cid = request.args.get("cid", "1")
     page = request.args.get("page", "1")
+    # 默认不传递每夜新闻数量，默认为10条数据
     per_page = request.args.get("per_page", "10")
 
-    if not all([cid,page,per_page]):
-        return jsonify(errno=RET.PARAMERR,errmsg="参数不足")
-
+    # 校验参数
     try:
-        cid = int(cid)
         page = int(page)
+        cid = int(cid)
         per_page = int(per_page)
+
     except Exception as e:
-        current_app.lagger.error(e)
-        return jsonify(errno=RET.DATAERR,errmsg="数据类型错误")
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="Parameter error!")
+    # 这里只显示审核通过的新闻
+    filters = [News.status == 0]
+    if cid != 1:  # 查询的不是最新的数据，数据库中不存在cid为1的分类
+        # 需要添加条件
+        filters.append(News.category_id == cid)
 
-    filters = []
-    if cid != 1:
-        filters.append(News.category_id==cid)
-
+    # 查询数据
     try:
+        # filter里面不加参数会查询全部数据
         paginate = News.query.filter(*filters).order_by(News.create_time.desc()).paginate(page, per_page, False)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="数据库查询错误")
+        return jsonify(RET.DBERR, errmsg="Data query error！")
 
+    # 取到当前页的数据
     news_model_list = paginate.items
     total_page = paginate.pages
     current_page = paginate.page
 
-
-
-    news_dict_list = [new.to_basic_dict() for new in news_model_list]
+    # 将模型对象列表转换为字典列表
+    news_dict_li = []
+    for news in news_model_list:
+        news_dict_li.append(news.to_basic_dict())
 
     data = {
-        'total_page': total_page,
-        'current_page': current_page,
-        'news_dict_list': news_dict_list
+        "total_page": total_page,
+        "current_page": current_page,
+        "news_dict_li": news_dict_li
     }
 
-    print(news_dict_list,total_page,current_page)
-
-    return jsonify(errno=RET.OK,errmsg="OK",data=data)
-
+    return jsonify(errno=RET.OK, errmsg="OK", data=data)

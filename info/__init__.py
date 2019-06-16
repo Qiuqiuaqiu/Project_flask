@@ -47,6 +47,11 @@ def create_app(config_name):
 
 
     Session(app)
+
+    from info.utils.common import do_index_class
+    # 添加自定义过滤器
+    app.add_template_filter(do_index_class, "index_class")
+
     from info.modules.index import index_blu
     app.register_blueprint(index_blu)
 
