@@ -1,6 +1,7 @@
 from flask import g, jsonify, redirect, render_template, request, current_app
 
-from info import db
+from info import db, constants
+from info.libs.image_storage import storage
 from info.modules.profile import profile_blu
 from info.response_code import RET
 from info.utils.common import user_login
@@ -60,9 +61,63 @@ def user_base_info():
 @profile_blu.route("/user_pic_info",methods=["GET","POST"])
 @user_login
 def user_pic_info():
-
     user = g.user
-    data = {
-        "user": user.to_dict()
-    }
-    return render_template("news/user_pic_info.html",data=data)
+    if request.method == "GET":
+
+        data = {
+            "user": user.to_dict()
+        }
+        return render_template("news/user_pic_info.html",data=data)
+
+    try:
+        image_data = request.files.get("avatar").read()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    try:
+        key = storage(image_data)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR, errmsg="上传头像失败")
+
+    user.avatar_url = key
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库保存失败")
+
+    return jsonify(errno=RET.OK, errmsg="上传头像成功", data=constants.QINIU_DOMIN_PREFIX + key)
+
+@profile_blu.route("/user_pass_info",methods=["GET","POST"])
+@user_login
+def user_pass_info():
+    user = g.user
+
+    if request.method == "GET":
+        return render_template("news/user_pass_info.html")
+
+    old_password = request.json.get("old_password")
+    new_password = request.json.get("new_password")
+
+    if not all([old_password, new_password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    if not user.check_passowrd(old_password):
+        return jsonify(errno=RET.DATAERR, errmsg="密码错误")
+
+    user.password = new_password
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库保存失败")
+
+
+    # return redirect("/")
+    return jsonify(errno=RET.OK, errmsg="修改成功")
