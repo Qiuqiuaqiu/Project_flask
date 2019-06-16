@@ -57,4 +57,12 @@ def user_base_info():
 
     return jsonify(errno=RET.OK, errmsg="Ok", data=user.to_dict())
 
+@profile_blu.route("/user_pic_info",methods=["GET","POST"])
+@user_login
+def user_pic_info():
 
+    user = g.user
+    data = {
+        "user": user.to_dict()
+    }
+    return render_template("news/user_pic_info.html",data=data)
