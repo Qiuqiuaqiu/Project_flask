@@ -15,7 +15,7 @@ def news_detail(news_id):
     # 查询用户是否已经登录
     user = g.user
 
-    print(111111)
+    # print(111111)
 
     # 右侧的新闻排列的逻辑
     news_list = []

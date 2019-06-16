@@ -27,5 +27,5 @@ manager.add_command('db',MigrateCommand)
 
 if __name__ == '__main__':
     # print(app.url_map)
-    print(1234)
+    # print(1234)
     manager.run()
