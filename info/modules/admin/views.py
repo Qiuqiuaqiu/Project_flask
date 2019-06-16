@@ -1,10 +1,48 @@
 import datetime
 
-from flask import render_template, request, current_app, session, redirect, url_for, g
+from flask import render_template, request, current_app, session, redirect, url_for, g, jsonify
 
 from info import user_login, constants
 from info.models import User, News
 from info.modules.admin import admin_blu
+from info.utils.response_code import RET
+
+
+@admin_blu.route('/news_review_action', methods=["POST"])
+def news_review_action():
+    # 1. 接受参数
+    news_id = request.json.get("news_id")  # ""
+    action = request.json.get("action")
+
+    # 2. 参数校验
+    if not all([news_id, action]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    if action not in("accept", "reject"):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    # 查询到指定的新闻数据
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据查询失败")
+
+    if not news:
+        return jsonify(errno=RET.NODATA, errmsg="未查询到数据")
+
+    if action == "accept":
+        # 代表接受
+        news.status = 0
+    else:
+        # 代表拒绝
+        reason = request.json.get("reason")
+        if not reason:
+            return jsonify(errno=RET.PARAMERR, errmsg="请输入拒绝原因")
+        news.status = -1
+        news.reason = reason
+
+    return jsonify(errno=RET.OK, errmsg="OK")
 
 
 @admin_blu.route('/news_review_detail/<int:news_id>')
