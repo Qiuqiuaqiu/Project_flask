@@ -121,7 +121,7 @@ def detail(news_id):
     }
     return render_template("news/detail.html",data=data)
 
-@news_blu.route("/new_comment",methods=["POST"])
+@news_blu.route("/news_comment",methods=["POST"])
 @user_login
 def news_comment():
     """
