@@ -1,13 +1,12 @@
 from logging.handlers import RotatingFileHandler
-from flask import Flask
+from flask import Flask, render_template, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect,generate_csrf
 from redis import StrictRedis
 from flask_session import Session
 import logging
 from config import configs
-from info.utils.common import do_index_class
-
+from info.utils.common import do_index_class, user_login
 
 db = SQLAlchemy()
 def set_log(config_name):
@@ -42,11 +41,23 @@ def create_app(config_name):
         response.set_cookie("csrf_token", csrf_token)
         return response
 
+    @app.errorhandler(404)
+    @user_login
+    def get_404_error(e):
+        user = g.user
+        data = {
+            "user": user.to_dict() if user else None
+        }
+        return render_template("news/404.html", data=data)
+
     CSRFProtect(app)
+
     # 五、集成session
 
 
     Session(app)
+
+
 
     from info.utils.common import do_index_class
     # 添加自定义过滤器
