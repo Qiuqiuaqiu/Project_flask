@@ -309,3 +309,4 @@ def followed_user():
         return jsonify(errno=RET.DBERR, errmsg="数据保存错误")
 
     return jsonify(errno=RET.OK, errmsg="操作成功")
+

@@ -1,1 +1,1 @@
-{"http:n1gKo9iDzko8yrck9Zw-XyJochVHsnBWPWlbkpju:avatar": {"ioHosts": ["http://iovip-z1.qbox.me"], "upHosts": ["http://up-z1.qiniu.com", "http://upload-z1.qiniu.com", "-H up-z1.qiniu.com http://106.38.227.28"], "deadline": 1560761412}}
+{"http:n1gKo9iDzko8yrck9Zw-XyJochVHsnBWPWlbkpju:avatar": {"deadline": 1560850427, "upHosts": ["http://up-z1.qiniu.com", "http://upload-z1.qiniu.com", "-H up-z1.qiniu.com http://106.38.227.28"], "ioHosts": ["http://iovip-z1.qbox.me"]}}
